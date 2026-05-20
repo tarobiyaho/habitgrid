@@ -130,7 +130,7 @@ HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HabitGrid</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='0.5' y2='0'%3E%3Cstop offset='0%25' stop-color='%23ef4444'/%3E%3Cstop offset='50%25' stop-color='%23f97316'/%3E%3Cstop offset='100%25' stop-color='%23facc15'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M12 2C9 7 5 10 5 15c0 3.87 3.13 7 7 7s7-3.13 7-7c0-5-4-8-7-13zm0 18c-2.76 0-5-2.24-5-5 0-2 2-3.5 3.5-5.5.5-.7 1.5-.7 2 0 1.5 2 3.5 3.5 3.5 5.5 0 2.76-2.24 5-5 5z' fill='url(%23g)'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -142,6 +142,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .logo{display:flex;align-items:center;gap:.6rem;font-size:1.3rem;font-weight:700}
 .logo-icon{width:32px;height:32px;background:var(--grad);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff}
 .logo span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo{transition:transform .2s ease}
+.logo:hover{transform:scale(1.03)}
+.logo-icon{transition:transform .25s ease,box-shadow .25s ease}
+.logo:hover .logo-icon{transform:rotate(-8deg) scale(1.1);box-shadow:0 0 18px rgba(249,115,22,.45)}
+.logo-icon svg{width:18px;height:18px}
 .btn{background:var(--grad);color:#fff;border:none;border-radius:8px;padding:.55rem 1.2rem;font-size:.85rem;font-weight:600;cursor:pointer;transition:transform .15s}
 .btn:hover{transform:translateY(-1px)}
 .btn-ghost{background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.55rem 1rem;font-size:.85rem;cursor:pointer}
@@ -196,7 +201,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 </head>
 <body>
 <nav class="nav"><div class="container nav-inner">
-  <div class="logo"><div class="logo-icon">🔥</div><span>HabitGrid</span></div>
+  <div class="logo"><div class="logo-icon"><svg viewBox="0 0 24 24" width="18" height="18"><defs><linearGradient id="logo-flame-grad" x1="0" y1="1" x2="0.5" y2="0"><stop offset="0%" stop-color="#ef4444"/><stop offset="50%" stop-color="#f97316"/><stop offset="100%" stop-color="#facc15"/></linearGradient></defs><path d="M12 2C9 7 5 10 5 15c0 3.87 3.13 7 7 7s7-3.13 7-7c0-5-4-8-7-13zm0 18c-2.76 0-5-2.24-5-5 0-2 2-3.5 3.5-5.5.5-.7 1.5-.7 2 0 1.5 2 3.5 3.5 3.5 5.5 0 2.76-2.24 5-5 5z" fill="url(#logo-flame-grad)"/></svg></div><span>HabitGrid</span></div>
   <button class="btn" onclick="openModal()">+ New Habit</button>
 </div></nav>
 <div class="container main">
@@ -250,9 +255,9 @@ async function load(){
     <div class="stat"><div class="stat-val">${habits.length}</div><div class="stat-label">Habits</div></div>
     <div class="stat"><div class="stat-val">${todayDone}/${habits.length}</div><div class="stat-label">Today</div></div>
     <div class="stat"><div class="stat-val">${totalDone}</div><div class="stat-label">Total Check-ins</div></div>
-    <div class="stat"><div class="stat-val">${bestStreak}🔥</div><div class="stat-label">Best Streak</div></div>`;
+    <div class="stat"><div class="stat-val">${bestStreak}${flameSVG()}</div><div class="stat-label">Best Streak</div></div>`;
 
-  if(!habits.length){document.getElementById('habitsEl').innerHTML='<div class="empty">🔥 No habits yet. Create one to start tracking!</div>';return}
+  if(!habits.length){document.getElementById('habitsEl').innerHTML=`<div class="empty">${flameSVG()} No habits yet. Create one to start tracking!</div>`;return}
 
   document.getElementById('habitsEl').innerHTML=habits.map(h=>{
     const today=new Date().toISOString().split('T')[0];
@@ -261,7 +266,7 @@ async function load(){
       <div class="habit-header">
         <div class="habit-name"><span class="emoji">${h.emoji}</span>${esc(h.name)}</div>
         <div class="habit-meta">
-          <span>🔥 ${h.streak} day streak</span>
+          <span>${flameSVG()} ${h.streak} day streak</span>
           <span>📊 ${h.total_done} total</span>
         </div>
       </div>
@@ -287,6 +292,11 @@ async function createHabit(){
 async function toggleLog(hid){await api(`/api/habits/${hid}/log`,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});load()}
 async function deleteHabit(hid){if(!confirm('Delete habit?'))return;await api(`/api/habits/${hid}`,{method:'DELETE'});load()}
 function esc(s){if(!s)return'';const e=document.createElement('span');e.textContent=s;return e.innerHTML}
+let _fgid=0;
+function flameSVG(cls){
+  const id='fg'+(_fgid++);
+  return `<svg viewBox="0 0 24 24" width="16" height="16" class="${cls||''}" style="vertical-align:middle"><defs><linearGradient id="${id}" x1="0" y1="1" x2="0.5" y2="0"><stop offset="0%" stop-color="#ef4444"/><stop offset="50%" stop-color="#f97316"/><stop offset="100%" stop-color="#facc15"/></linearGradient></defs><path d="M12 2C9 7 5 10 5 15c0 3.87 3.13 7 7 7s7-3.13 7-7c0-5-4-8-7-13zm0 18c-2.76 0-5-2.24-5-5 0-2 2-3.5 3.5-5.5.5-.7 1.5-.7 2 0 1.5 2 3.5 3.5 3.5 5.5 0 2.76-2.24 5-5 5z" fill="url(#${id})"/></svg>`;
+}
 
 load();
 </script>
